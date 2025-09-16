@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Save Myself — Interactive Page</title>
+  <style>
+    :root{--bg:#0b0b0f;--pink:#ffe0f0;--accent:#ff66b2}
+    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;background:var(--bg);color:#fff}
+    .screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;transition:opacity .4s ease,transform .4s ease}
+    .hidden{pointer-events:none;opacity:0;transform:scale(.98)}
+
+    /* FIRST SCREEN */
+    .hack-box{width:min(920px,94%);text-align:center;padding:40px;border-radius:14px;background:linear-gradient(180deg,#0f1020, #07060a);box-shadow:0 20px 50px rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.03)}
+    .hack-title{font-size:36px;letter-spacing:1px;margin-bottom:18px;color:#ff4646}
+    .hack-sub{opacity:.9;margin-bottom:24px}
+    .btn{appearance:none;border:0;padding:12px 20px;border-radius:10px;font-weight:600;cursor:pointer}
+    .btn-primary{background:linear-gradient(90deg,var(--accent),#ff3a92);color:white;box-shadow:0 8px 30px rgba(255,70,130,.18);}
+
+    /* PINK PAGE */
+    .pink-screen{background:linear-gradient(180deg,#fff0f6,#ffd9ee);color:#20001a}
+    .choices{display:flex;gap:18px;flex-wrap:wrap;align-items:center;justify-content:center}
+    .choice-btn{background:#fff;border-radius:12px;padding:18px 22px;min-width:170px;box-shadow:0 8px 30px rgba(0,0,0,.08);cursor:pointer;font-weight:700}
+
+    /* CUPBOARD */
+    .cupboard{display:grid;grid-template-columns:repeat(5,1fr);gap:18px;width:min(1100px,95%);padding:40px}
+    .drawer{background:linear-gradient(180deg,#ccb4ff,#bda6ff);border-radius:12px;padding:28px;display:flex;align-items:center;justify-content:center;flex-direction:column;cursor:pointer;position:relative}
+    .drawer p{margin:0;font-weight:700}
+    .drawer:active{transform:translateY(2px) scale(.997)}
+    .drawer.locked{background:linear-gradient(180deg,#f6f6f6,#e8e8e8);color:#222}
+
+    /* Letter overlay */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center}
+    .letter{background:#fff;width:min(720px,94%);padding:34px;border-radius:12px;color:#111;box-shadow:0 40px 80px rgba(0,0,0,.5)}
+    .letter h2{margin:0 0 8px 0}
+    .final-screen{background:#fff;color:#111;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px}
+    .final-msg{max-width:900px}
+
+    /* small helpers */
+    .muted{opacity:.85}
+    .small{font-size:14px}
+    .empty-pop{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.95);color:#111;padding:6px 10px;border-radius:8px;font-weight:700;transform:translateY(-6px);}
+
+    /* Responsive */
+    @media (max-width:720px){.cupboard{grid-template-columns:repeat(2,1fr)} .hack-title{font-size:28px}}
+
+  </style>
+</head>
+<body>
+  <!-- SCREEN 1: HACKED -->
+  <main id="screen-hack" class="screen">
+    <div class="hack-box">
+      <div class="hack-title">YOU'VE BEEN HACKED</div>
+      <div class="hack-sub muted">All your secrets are mine. (Just kidding — click the button to save yourself.)</div>
+      <button id="btn-save" class="btn btn-primary">Save Myself</button>
+    </div>
+  </main>
+
+  <!-- SCREEN 2: PINK CHOICES -->
+  <section id="screen-pink" class="screen hidden pink-screen">
+    <h1 style="font-size:28px;margin-bottom:12px">Choose what to do with your heart</h1>
+    <div class="choices" role="group" aria-label="heart choices">
+      <button class="choice-btn" data-choice="use">Use my heart</button>
+      <button class="choice-btn" data-choice="donate">Donate my heart</button>
+      <button class="choice-btn" data-choice="steal">Steal my heart</button>
+    </div>
+    <div style="margin-top:18px;color:#6b0051" class="small">(Click any — the adventure continues)</div>
+  </section>
+
+  <!-- SCREEN 3: CUPBOARD -->
+  <section id="screen-cupboard" class="screen hidden" style="flex-direction:column;">
+    <h1 style="margin-bottom:12px">Open a desk (they're all clickable)</h1>
+    <div class="cupboard" id="cupboard">
+      <div class="drawer" data-index="1"><p>Desk 1</p></div>
+      <div class="drawer" data-index="2"><p>Desk 2</p></div>
+      <div class="drawer" data-index="3"><p>Desk 3</p></div>
+      <div class="drawer" data-index="4"><p>Desk 4</p></div>
+      <div class="drawer" data-index="5"><p>Desk 5</p></div>
+    </div>
+    <div class="small muted">Tip: try the last desk 😉</div>
+  </section>
+
+  <!-- LETTER OVERLAY (hidden until last desk clicked) -->
+  <div id="letter-overlay" class="overlay hidden" style="display:none;">
+    <div class="letter">
+      <h2>📜 A Letter</h2>
+      <p class="small muted">You found something inside the last desk. Read carefully.</p>
+      <hr style="margin:14px 0;opacity:.07" />
+      <p id="letter-content" style="font-size:18px;line-height:1.5">(The letter is folded. Click to unfold.)</p>
+      <div style="display:flex;justify-content:flex-end;margin-top:18px;gap:10px">
+        <button id="btn-unfold" class="btn">Unfold</button>
+        <button id="btn-close" class="btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FINAL SCREEN: WHITE MESSAGE -->
+  <section id="screen-final" class="screen hidden final-screen">
+    <div class="final-msg">
+      <h1 style="font-size:36px;margin-bottom:10px">A Message</h1>
+      <p style="font-size:20px;line-height:1.6">i love you so much baby girl and i'm taking ur heart forever</p>
+      <div style="margin-top:18px" class="small muted">— from someone who can't stop caring</div>
+    </div>
+  </section>
+
+  <script>
+    // Quick helpers
+    const show = (id) => document.getElementById(id).classList.remove('hidden');
+    const hide = (id) => document.getElementById(id).classList.add('hidden');
+
+    // Initial elements
+    const btnSave = document.getElementById('btn-save');
+    const screenHack = document.getElementById('screen-hack');
+    const screenPink = document.getElementById('screen-pink');
+    const screenCupboard = document.getElementById('screen-cupboard');
+    const screenFinal = document.getElementById('screen-final');
+    const letterOverlay = document.getElementById('letter-overlay');
+    const letterContent = document.getElementById('letter-content');
+
+    // 1 -> Save Myself click
+    btnSave.addEventListener('click', () => {
+      // fade out hack screen, show pink
+      hide('screen-hack');
+      setTimeout(() => show('screen-pink'), 350);
+    });
+
+    // 2 -> choices
+    document.querySelectorAll('.choice-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        // You could vary behavior by data-choice; currently all go to cupboard
+        hide('screen-pink');
+        setTimeout(() => show('screen-cupboard'), 250);
+      });
+    });
+
+    // 3 -> cupboard desks
+    document.querySelectorAll('.drawer').forEach(drawer => {
+      drawer.addEventListener('click', (e) => {
+        const idx = Number(drawer.dataset.index);
+        if(idx === 5){
+          // show overlay with letter
+          letterContent.textContent = '(The letter is folded. Click to unfold.)';
+          letterOverlay.style.display = 'flex';
+          letterOverlay.classList.remove('hidden');
+        } else {
+          // show a quick "empty" popup on that drawer
+          const pop = document.createElement('div');
+          pop.className = 'empty-pop';
+          pop.textContent = 'Empty';
+          drawer.appendChild(pop);
+          setTimeout(() => { pop.remove(); }, 900);
+        }
+      });
+    });
+
+    // close overlay
+    document.getElementById('btn-close').addEventListener('click', () => {
+      letterOverlay.classList.add('hidden');
+      setTimeout(()=>{ letterOverlay.style.display='none'; },300);
+    });
+
+    // unfold -> go to final white page
+    document.getElementById('btn-unfold').addEventListener('click', () => {
+      // animate letter unfolding (simple)
+      letterContent.textContent = "i love you so much baby girl and i'm taking ur heart forever";
+      // after a quick pause, go to final screen
+      setTimeout(() => {
+        letterOverlay.classList.add('hidden');
+        letterOverlay.style.display = 'none';
+        hide('screen-cupboard');
+        setTimeout(() => show('screen-final'), 280);
+      }, 600);
+    });
+
+    // Keyboard accessibility: allow Enter on focused items
+    document.body.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){
+        const el = document.activeElement;
+        if(el && (el.classList.contains('btn') || el.classList.contains('choice-btn') || el.classList.contains('drawer'))){
+          el.click();
+        }
+      }
+    });
+
+    // Make sure first screen occupies full height (for mobile)
+    function setVH(){ document.documentElement.style.setProperty('--vh', window.innerHeight*0.01 + 'px'); }
+    setVH(); window.addEventListener('resize', setVH);
+  </script>
+</body>
+</html>
