@@ -3,188 +3,176 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Save Myself — Interactive Page</title>
+  <title>You've been hacked — surprise!</title>
   <style>
-    :root{--bg:#0b0b0f;--pink:#ffe0f0;--accent:#ff66b2}
-    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;background:var(--bg);color:#fff}
-    .screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;transition:opacity .4s ease,transform .4s ease}
-    .hidden{pointer-events:none;opacity:0;transform:scale(.98)}
+    :root{
+      --bg:#0f1724;
+      --accent:#ff6b6b;
+      --accent2:#7c3aed;
+      --card:#0b1220;
+      --glass: rgba(255,255,255,0.04);
+    }
+    *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
+    html,body,#app{height:100%;margin:0}
+    body{background:linear-gradient(180deg,#020617 0%, #07112a 60%, #0f1724 100%);color:#e6eef8;display:flex;align-items:center;justify-content:center}
+    .screen{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100vh;padding:24px;transition:all .6s cubic-bezier(.2,.9,.3,1);}
 
-    /* FIRST SCREEN */
-    .hack-box{width:min(920px,94%);text-align:center;padding:40px;border-radius:14px;background:linear-gradient(180deg,#0f1020, #07060a);box-shadow:0 20px 50px rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.03)}
-    .hack-title{font-size:36px;letter-spacing:1px;margin-bottom:18px;color:#ff4646}
-    .hack-sub{opacity:.9;margin-bottom:24px}
-    .btn{appearance:none;border:0;padding:12px 20px;border-radius:10px;font-weight:600;cursor:pointer}
-    .btn-primary{background:linear-gradient(90deg,var(--accent),#ff3a92);color:white;box-shadow:0 8px 30px rgba(255,70,130,.18);}
+    /* Hacked screen */
+    .hacked h1{font-size:clamp(28px,6vw,64px);letter-spacing:1px;margin:0 0 12px;color:var(--accent)}
+    .hacked p{opacity:.9;margin:0 0 24px;font-size:18px}
+    .btn{display:inline-flex;align-items:center;gap:10px;padding:12px 22px;border-radius:12px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;color:white;font-weight:700;cursor:pointer;box-shadow:0 8px 30px rgba(124,58,237,.16);transform:translateZ(0)}
+    .btn.secondary{background:transparent;border:2px solid rgba(255,255,255,.06);box-shadow:none;color:#e6eef8}
 
-    /* PINK PAGE */
-    .pink-screen{background:linear-gradient(180deg,#fff0f6,#ffd9ee);color:#20001a}
-    .choices{display:flex;gap:18px;flex-wrap:wrap;align-items:center;justify-content:center}
-    .choice-btn{background:#fff;border-radius:12px;padding:18px 22px;min-width:170px;box-shadow:0 8px 30px rgba(0,0,0,.08);cursor:pointer;font-weight:700}
+    /* Cards + big panel */
+    .panel{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border-radius:16px;padding:28px;min-width:320px;max-width:880px;text-align:center;backdrop-filter:blur(6px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.02), 0 10px 30px rgba(2,6,23,0.6)}
 
-    /* CUPBOARD */
-    .cupboard{display:grid;grid-template-columns:repeat(5,1fr);gap:18px;width:min(1100px,95%);padding:40px}
-    .drawer{background:linear-gradient(180deg,#ccb4ff,#bda6ff);border-radius:12px;padding:28px;display:flex;align-items:center;justify-content:center;flex-direction:column;cursor:pointer;position:relative}
-    .drawer p{margin:0;font-weight:700}
-    .drawer:active{transform:translateY(2px) scale(.997)}
-    .drawer.locked{background:linear-gradient(180deg,#f6f6f6,#e8e8e8);color:#222}
+    /* Today's special */
+    .special h2{margin:0 0 18px;font-size:28px}
+    .choices{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+    .choice{padding:14px 18px;border-radius:12px;background:var(--glass);min-width:220px;cursor:pointer;border:1px solid rgba(255,255,255,0.03)}
 
-    /* Letter overlay */
-    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center}
-    .letter{background:#fff;width:min(720px,94%);padding:34px;border-radius:12px;color:#111;box-shadow:0 40px 80px rgba(0,0,0,.5)}
-    .letter h2{margin:0 0 8px 0}
-    .final-screen{background:#fff;color:#111;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px}
-    .final-msg{max-width:900px}
+    /* Birthday hunt */
+    .hunt p{max-width:720px}
+    .boxes{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap;justify-content:center}
+    .box{width:120px;height:120px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;cursor:pointer;border:2px dashed rgba(255,255,255,0.03)}
 
-    /* small helpers */
-    .muted{opacity:.85}
-    .small{font-size:14px}
-    .empty-pop{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.95);color:#111;padding:6px 10px;border-radius:8px;font-weight:700;transform:translateY(-6px);}
+    /* Final message */
+    .final{padding:36px;max-width:900px;text-align:left}
+    .final h1{font-size:36px;margin:0 0 12px;color:gold}
+    .message{white-space:pre-wrap;line-height:1.5;font-size:16px;margin-top:14px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));padding:20px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
 
-    /* Responsive */
-    @media (max-width:720px){.cupboard{grid-template-columns:repeat(2,1fr)} .hack-title{font-size:28px}}
+    /* decorative */
+    .logo{position:fixed;left:18px;top:18px;font-weight:800;letter-spacing:1px}
+    .small{font-size:12px;opacity:.7}
 
+    /* confetti */
+    .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+    .confetti i{position:absolute;display:block;width:10px;height:18px;opacity:0;transform:translateY(-20vh) rotate(0deg);animation:fall linear forwards}
+    @keyframes fall{to{transform:translateY(120vh) rotate(540deg);opacity:1}}
+
+    /* responsive tweaks */
+    @media (max-width:520px){.box{width:92px;height:92px;font-size:12px}.choice{min-width:160px}}
   </style>
 </head>
 <body>
-  <!-- SCREEN 1: HACKED -->
-  <main id="screen-hack" class="screen">
-    <div class="hack-box">
-      <div class="hack-title">YOU'VE BEEN HACKED</div>
-      <div class="hack-sub muted">All your secrets are mine. (Just kidding — click the button to save yourself.)</div>
-      <button id="btn-save" class="btn btn-primary">Save Myself</button>
-    </div>
-  </main>
+  <div id="app">
+    <div class="logo small">✨ cute-surprise</div>
 
-  <!-- SCREEN 2: PINK CHOICES -->
-  <section id="screen-pink" class="screen hidden pink-screen">
-    <h1 style="font-size:28px;margin-bottom:12px">Choose what to do with your heart</h1>
-    <div class="choices" role="group" aria-label="heart choices">
-      <button class="choice-btn" data-choice="use">Use my heart</button>
-      <button class="choice-btn" data-choice="donate">Donate my heart</button>
-      <button class="choice-btn" data-choice="steal">Steal my heart</button>
-    </div>
-    <div style="margin-top:18px;color:#6b0051" class="small">(Click any — the adventure continues)</div>
-  </section>
-
-  <!-- SCREEN 3: CUPBOARD -->
-  <section id="screen-cupboard" class="screen hidden" style="flex-direction:column;">
-    <h1 style="margin-bottom:12px">Open a desk (they're all clickable)</h1>
-    <div class="cupboard" id="cupboard">
-      <div class="drawer" data-index="1"><p>Desk 1</p></div>
-      <div class="drawer" data-index="2"><p>Desk 2</p></div>
-      <div class="drawer" data-index="3"><p>Desk 3</p></div>
-      <div class="drawer" data-index="4"><p>Desk 4</p></div>
-      <div class="drawer" data-index="5"><p>Desk 5</p></div>
-    </div>
-    <div class="small muted">Tip: try the last desk 😉</div>
-  </section>
-
-  <!-- LETTER OVERLAY (hidden until last desk clicked) -->
-  <div id="letter-overlay" class="overlay hidden" style="display:none;">
-    <div class="letter">
-      <h2>📜 A Letter</h2>
-      <p class="small muted">You found something inside the last desk. Read carefully.</p>
-      <hr style="margin:14px 0;opacity:.07" />
-      <p id="letter-content" style="font-size:18px;line-height:1.5">(The letter is folded. Click to unfold.)</p>
-      <div style="display:flex;justify-content:flex-end;margin-top:18px;gap:10px">
-        <button id="btn-unfold" class="btn">Unfold</button>
-        <button id="btn-close" class="btn">Close</button>
+    <!-- Screen 1: hacked -->
+    <section id="s1" class="screen hacked">
+      <div class="panel">
+        <h1>YOU'VE BEEN HACKED</h1>
+        <p>All your secrets are safe. (Mostly memes.)</p>
+        <button id="existBtn" class="btn">exist</button>
       </div>
-    </div>
+    </section>
+
+    <!-- Screen 2: what's special today -->
+    <section id="s2" class="screen" style="display:none">
+      <div class="panel special">
+        <h2>what's special today?</h2>
+        <div class="choices">
+          <div class="choice" data-topic="dussehra">start of dusshera vacation</div>
+          <div class="choice" data-topic="peace">international day of peace</div>
+          <div class="choice" data-topic="alzheimers">World Alzheimer's Day</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen 3: hunt -->
+    <section id="s3" class="screen" style="display:none">
+      <div class="panel hunt">
+        <h2>no u're wrong — today's your bday</h2>
+        <p>search for ur bday message in the 5given boxes</p>
+        <div class="boxes" id="boxes">
+          <div class="box" data-index="1">box 1</div>
+          <div class="box" data-index="2">box 2</div>
+          <div class="box" data-index="3">box 3</div>
+          <div class="box" data-index="4">box 4</div>
+          <div class="box" data-index="5">box 5</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen 4: final message -->
+    <section id="s4" class="screen" style="display:none;align-items:flex-start;justify-content:flex-start;padding:48px 24px">
+      <div class="panel final">
+        <h1>Happy Birthday shreyall 🎉</h1>
+        <div class="message" id="finalMessage">Loading...</div>
+      </div>
+    </section>
+
+    <!-- confetti container -->
+    <div class="confetti" id="confetti"></div>
   </div>
 
-  <!-- FINAL SCREEN: WHITE MESSAGE -->
-  <section id="screen-final" class="screen hidden final-screen">
-    <div class="final-msg">
-      <h1 style="font-size:36px;margin-bottom:10px">A Message</h1>
-      <p style="font-size:20px;line-height:1.6">i love you so much baby girl and i'm taking ur heart forever</p>
-      <div style="margin-top:18px" class="small muted">— from someone who can't stop caring</div>
-    </div>
-  </section>
-
   <script>
-    // Quick helpers
-    const show = (id) => document.getElementById(id).classList.remove('hidden');
-    const hide = (id) => document.getElementById(id).classList.add('hidden');
+    // elements
+    const s1 = document.getElementById('s1');
+    const s2 = document.getElementById('s2');
+    const s3 = document.getElementById('s3');
+    const s4 = document.getElementById('s4');
+    const existBtn = document.getElementById('existBtn');
+    const choices = document.querySelectorAll('.choice');
+    const boxes = document.querySelectorAll('.box');
+    const finalMessage = document.getElementById('finalMessage');
+    const confettiContainer = document.getElementById('confetti');
 
-    // Initial elements
-    const btnSave = document.getElementById('btn-save');
-    const screenHack = document.getElementById('screen-hack');
-    const screenPink = document.getElementById('screen-pink');
-    const screenCupboard = document.getElementById('screen-cupboard');
-    const screenFinal = document.getElementById('screen-final');
-    const letterOverlay = document.getElementById('letter-overlay');
-    const letterContent = document.getElementById('letter-content');
-
-    // 1 -> Save Myself click
-    btnSave.addEventListener('click', () => {
-      // fade out hack screen, show pink
-      hide('screen-hack');
-      setTimeout(() => show('screen-pink'), 350);
+    // initial interactions
+    existBtn.addEventListener('click', ()=>{
+      s1.style.display='none';
+      s2.style.display='flex';
+      s2.animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'translateY(0)'}],{duration:420,easing:'ease-out'});
     });
 
-    // 2 -> choices
-    document.querySelectorAll('.choice-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        // You could vary behavior by data-choice; currently all go to cupboard
-        hide('screen-pink');
-        setTimeout(() => show('screen-cupboard'), 250);
-      });
-    });
+    choices.forEach(c=>c.addEventListener('click', ()=>{
+      s2.style.display='none';
+      s3.style.display='flex';
+      s3.animate([{opacity:0,transform:'scale(.98)'},{opacity:1,transform:'scale(1)'}],{duration:420,easing:'ease-out'});
+    }));
 
-    // 3 -> cupboard desks
-    document.querySelectorAll('.drawer').forEach(drawer => {
-      drawer.addEventListener('click', (e) => {
-        const idx = Number(drawer.dataset.index);
-        if(idx === 5){
-          // show overlay with letter
-          letterContent.textContent = '(The letter is folded. Click to unfold.)';
-          letterOverlay.style.display = 'flex';
-          letterOverlay.classList.remove('hidden');
-        } else {
-          // show a quick "empty" popup on that drawer
-          const pop = document.createElement('div');
-          pop.className = 'empty-pop';
-          pop.textContent = 'Empty';
-          drawer.appendChild(pop);
-          setTimeout(() => { pop.remove(); }, 900);
-        }
-      });
-    });
-
-    // close overlay
-    document.getElementById('btn-close').addEventListener('click', () => {
-      letterOverlay.classList.add('hidden');
-      setTimeout(()=>{ letterOverlay.style.display='none'; },300);
-    });
-
-    // unfold -> go to final white page
-    document.getElementById('btn-unfold').addEventListener('click', () => {
-      // animate letter unfolding (simple)
-      letterContent.textContent = "i love you so much baby girl and i'm taking ur heart forever";
-      // after a quick pause, go to final screen
-      setTimeout(() => {
-        letterOverlay.classList.add('hidden');
-        letterOverlay.style.display = 'none';
-        hide('screen-cupboard');
-        setTimeout(() => show('screen-final'), 280);
-      }, 600);
-    });
-
-    // Keyboard accessibility: allow Enter on focused items
-    document.body.addEventListener('keydown', (e) => {
-      if(e.key === 'Enter'){
-        const el = document.activeElement;
-        if(el && (el.classList.contains('btn') || el.classList.contains('choice-btn') || el.classList.contains('drawer'))){
-          el.click();
-        }
+    // clicking boxes
+    boxes.forEach(b=>b.addEventListener('click', ()=>{
+      const idx = parseInt(b.dataset.index,10);
+      if(idx === 3){
+        // show final screen and message
+        s3.style.display='none';
+        s4.style.display='flex';
+        playConfetti();
+        finalMessage.textContent = `Happy Birthday shreyall. It’s crazy how it’s only been a couple of months since we met, yet you’ve already become such an important part of my life. You’ve been there for me in ways I didn’t expect ! giving me advice when I needed it, listening to me when I had no one else, and just making everything feel lighter.\n\nYou’re honestly one of the sweetest and smartest people I know, and I can’t thank you enough for the support and comfort you’ve given me in such a short time. I feel so lucky to have crossed paths with you, and I hope this upcoming years bring you all the happiness you truly deserve 🫶💫ALSO I HOPE U GET INTO DU mannn, u deserve the bestt`;
+        // simple animation
+        s4.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'translateY(0)'}],{duration:420,easing:'ease-out'});
+      } else {
+        // small shake to indicate wrong box
+        b.animate([{transform:'translateY(0)'},{transform:'translateY(-6px)'},{transform:'translateY(0)'}],{duration:360});
       }
-    });
+    }));
 
-    // Make sure first screen occupies full height (for mobile)
-    function setVH(){ document.documentElement.style.setProperty('--vh', window.innerHeight*0.01 + 'px'); }
-    setVH(); window.addEventListener('resize', setVH);
+    // confetti generator (lightweight)
+    function playConfetti(){
+      // create many small pieces
+      const colors = ['#ff595e','#ffca3a','#8ac926','#1982c4','#6a4c93'];
+      for(let i=0;i<60;i++){
+        const el = document.createElement('i');
+        el.style.left = Math.random()*100 + 'vw';
+        el.style.top = (-10 - Math.random()*10) + 'vh';
+        el.style.background = colors[Math.floor(Math.random()*colors.length)];
+        el.style.width = (6 + Math.random()*14) + 'px';
+        el.style.height = (8 + Math.random()*18) + 'px';
+        el.style.opacity = Math.random()*.9 + .3;
+        el.style.transform = `translateY(-20vh) rotate(${Math.random()*360}deg)`;
+        el.style.animationDuration = (2 + Math.random()*2) + 's';
+        el.style.animationDelay = (Math.random()*0.4) + 's';
+        confettiContainer.appendChild(el);
+        // remove later
+        setTimeout(()=>{el.remove()},5000 + Math.random()*2000);
+      }
+    }
+
+    // small enter key shortcut: from hacked -> s2
+    document.addEventListener('keydown',(e)=>{
+      if(e.key === 'Enter' && s1.style.display !== 'none') existBtn.click();
+    });
   </script>
 </body>
 </html>
